@@ -1,0 +1,57 @@
+<div class="page-header">
+  <h2>{{ isEdit ? 'Edit Booking' : 'New Booking' }}</h2>
+  <a routerLink="/bookings" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card">
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Room *</label>
+        <select formControlName="roomId" [class.is-invalid]="f['roomId'].invalid && f['roomId'].touched">
+          <option [value]="null">Select a room</option>
+          <option *ngFor="let r of rooms" [value]="r.id">
+            Room {{ r.roomNumber }} – {{ r.type }} ({{ r.status }}) – €{{ r.pricePerNight }}/night
+          </option>
+        </select>
+        <div *ngIf="f['roomId'].errors?.['required'] && f['roomId'].touched" class="invalid-feedback">Room is required</div>
+      </div>
+      <div class="form-group">
+        <label>User *</label>
+        <select formControlName="userId" [class.is-invalid]="f['userId'].invalid && f['userId'].touched">
+          <option [value]="null">Select a user</option>
+          <option *ngFor="let u of users" [value]="u.id">{{ u.username }} ({{ u.email }})</option>
+        </select>
+        <div *ngIf="f['userId'].errors?.['required'] && f['userId'].touched" class="invalid-feedback">User is required</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Check-in Date *</label>
+        <input type="date" formControlName="checkInDate" [min]="today" [class.is-invalid]="f['checkInDate'].invalid && f['checkInDate'].touched">
+        <div *ngIf="f['checkInDate'].errors?.['required'] && f['checkInDate'].touched" class="invalid-feedback">Check-in date is required</div>
+        <div *ngIf="f['checkInDate'].errors?.['futureDate'] && f['checkInDate'].touched" class="invalid-feedback">Date must be today or in the future</div>
+      </div>
+      <div class="form-group">
+        <label>Check-out Date *</label>
+        <input type="date" formControlName="checkOutDate" [min]="today" [class.is-invalid]="f['checkOutDate'].invalid && f['checkOutDate'].touched">
+        <div *ngIf="f['checkOutDate'].errors?.['required'] && f['checkOutDate'].touched" class="invalid-feedback">Check-out date is required</div>
+        <div *ngIf="f['checkOutDate'].errors?.['futureDate'] && f['checkOutDate'].touched" class="invalid-feedback">Date must be in the future</div>
+      </div>
+    </div>
+
+    <div *ngIf="form.errors?.['dateRange'] && form.touched" class="alert alert-danger">
+      Check-out date must be after check-in date.
+    </div>
+
+    <div style="display:flex;gap:.75rem;margin-top:1rem">
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{ loading ? 'Saving...' : (isEdit ? 'Update Booking' : 'Create Booking') }}
+      </button>
+      <a routerLink="/bookings" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>

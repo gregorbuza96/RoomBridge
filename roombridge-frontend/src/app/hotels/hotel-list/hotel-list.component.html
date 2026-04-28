@@ -1,0 +1,56 @@
+<div class="page-header">
+  <h2>Hotels</h2>
+  <div style="display:flex;gap:.5rem;align-items:center">
+    <label>Sort by:
+      <select (change)="onSortChange($any($event.target).value)" class="sort-select">
+        <option value="name">Name</option>
+        <option value="city">City</option>
+        <option value="starRating,desc">Stars (high)</option>
+        <option value="starRating">Stars (low)</option>
+      </select>
+    </label>
+    <a routerLink="/hotels/new" class="btn btn-primary">+ Add Hotel</a>
+  </div>
+</div>
+
+<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+<div *ngIf="loading" class="loader">Loading...</div>
+
+<div *ngIf="!loading" class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>City</th>
+        <th>Country</th>
+        <th>Stars</th>
+        <th>Phone</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let hotel of hotels">
+        <td>{{ hotel.id }}</td>
+        <td><strong>{{ hotel.name }}</strong></td>
+        <td>{{ hotel.city }}</td>
+        <td>{{ hotel.country }}</td>
+        <td><span class="stars">{{ stars(hotel.starRating || 0) }}</span></td>
+        <td>{{ hotel.phone || '—' }}</td>
+        <td>
+          <button class="btn btn-warning btn-sm" (click)="edit(hotel.id!)">Edit</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:.4rem" (click)="delete(hotel.id!)">Delete</button>
+        </td>
+      </tr>
+      <tr *ngIf="hotels.length === 0">
+        <td colspan="7" style="text-align:center;color:#888;padding:2rem">No hotels found.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="pagination" *ngIf="totalPages > 1">
+  <button class="btn btn-secondary btn-sm" [disabled]="currentPage === 0" (click)="goToPage(currentPage - 1)">← Prev</button>
+  <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+  <button class="btn btn-secondary btn-sm" [disabled]="currentPage === totalPages - 1" (click)="goToPage(currentPage + 1)">Next →</button>
+</div>

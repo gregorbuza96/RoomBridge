@@ -1,0 +1,49 @@
+<div class="page-header">
+  <h2>{{ isEdit ? 'Edit User' : 'Add User' }}</h2>
+  <a routerLink="/users" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card">
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Username *</label>
+        <input formControlName="username" [class.is-invalid]="f['username'].invalid && f['username'].touched">
+        <div *ngIf="f['username'].errors?.['required'] && f['username'].touched" class="invalid-feedback">Username is required</div>
+        <div *ngIf="f['username'].errors?.['minlength'] && f['username'].touched" class="invalid-feedback">Min 3 characters</div>
+        <div *ngIf="f['username'].errors?.['maxlength'] && f['username'].touched" class="invalid-feedback">Max 100 characters</div>
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" formControlName="email" [class.is-invalid]="f['email'].invalid && f['email'].touched">
+        <div *ngIf="f['email'].errors?.['required'] && f['email'].touched" class="invalid-feedback">Email is required</div>
+        <div *ngIf="f['email'].errors?.['email'] && f['email'].touched" class="invalid-feedback">Invalid email format</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Password {{ isEdit ? '(leave blank to keep)' : '*' }}</label>
+        <input type="password" formControlName="password" [class.is-invalid]="f['password'].invalid && f['password'].touched">
+        <div *ngIf="f['password'].errors?.['required'] && f['password'].touched" class="invalid-feedback">Password is required</div>
+        <div *ngIf="f['password'].errors?.['minlength'] && f['password'].touched" class="invalid-feedback">Min 6 characters</div>
+      </div>
+      <div class="form-group">
+        <label>Role *</label>
+        <select formControlName="role">
+          <option value="USER">USER</option>
+          <option value="ADMIN">ADMIN</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;margin-top:1rem">
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{ loading ? 'Saving...' : (isEdit ? 'Update User' : 'Create User') }}
+      </button>
+      <a routerLink="/users" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>

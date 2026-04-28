@@ -1,0 +1,194 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f7fa;
+  color: #333;
+  min-height: 100vh;
+}
+
+/* ── Navbar ── */
+.navbar {
+  background: #1565c0;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.navbar-brand {
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-decoration: none;
+  margin-right: 2rem;
+}
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 0.25rem;
+}
+.nav-links a {
+  color: rgba(255,255,255,.8);
+  text-decoration: none;
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  transition: background .2s;
+}
+.nav-links a:hover,
+.nav-links a.active {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+}
+
+/* ── Main content ── */
+.main-content {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+/* ── Page header ── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  h2 { font-size: 1.6rem; color: #1565c0; }
+}
+
+/* ── Card ── */
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Table ── */
+.table-wrapper { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+}
+thead { background: #1565c0; color: #fff; }
+th, td { padding: .75rem 1rem; text-align: left; }
+tbody tr:nth-child(even) { background: #f5f7fa; }
+tbody tr:hover { background: #e3f2fd; }
+
+/* ── Buttons ── */
+.btn {
+  padding: .45rem 1.1rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: .9rem;
+  font-weight: 500;
+  transition: opacity .2s;
+  text-decoration: none;
+  display: inline-block;
+  &:hover { opacity: .85; }
+}
+.btn-primary  { background: #1565c0; color: #fff; }
+.btn-success  { background: #2e7d32; color: #fff; }
+.btn-danger   { background: #c62828; color: #fff; }
+.btn-warning  { background: #f57f17; color: #fff; }
+.btn-secondary{ background: #546e7a; color: #fff; }
+.btn-sm { padding: .3rem .7rem; font-size: .8rem; }
+
+/* ── Form ── */
+.form-group {
+  margin-bottom: 1rem;
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: .35rem;
+    font-size: .9rem;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: .5rem .75rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: .95rem;
+    transition: border-color .2s;
+    &:focus {
+      outline: none;
+      border-color: #1565c0;
+      box-shadow: 0 0 0 2px rgba(21,101,192,.2);
+    }
+    &.is-invalid { border-color: #c62828; }
+  }
+  textarea { resize: vertical; min-height: 80px; }
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.invalid-feedback {
+  color: #c62828;
+  font-size: .8rem;
+  margin-top: .25rem;
+}
+
+/* ── Alert ── */
+.alert {
+  padding: .75rem 1rem;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  font-size: .9rem;
+}
+.alert-danger  { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+.alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: 1.25rem;
+  justify-content: center;
+  span { font-size: .9rem; color: #555; }
+}
+
+/* ── Badge ── */
+.badge {
+  padding: .2rem .6rem;
+  border-radius: 12px;
+  font-size: .75rem;
+  font-weight: 600;
+}
+.badge-success   { background: #c8e6c9; color: #2e7d32; }
+.badge-danger    { background: #ffcdd2; color: #c62828; }
+.badge-warning   { background: #fff9c4; color: #f57f17; }
+.badge-secondary { background: #eceff1; color: #546e7a; }
+
+/* ── Sort select (inline in page header) ── */
+.sort-select {
+  margin-left: .4rem;
+  padding: .3rem .5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: .875rem;
+}
+
+/* ── Stars ── */
+.stars { color: #f9a825; letter-spacing: 2px; }
+
+/* ── Loader ── */
+.loader {
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+}

@@ -1,0 +1,92 @@
+<div class="page-header">
+  <h2>{{ isEdit ? 'Edit Room' : 'Add Room' }}</h2>
+  <a routerLink="/rooms" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card">
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Room Number *</label>
+        <input type="number" formControlName="roomNumber" [class.is-invalid]="f['roomNumber'].invalid && f['roomNumber'].touched">
+        <div *ngIf="f['roomNumber'].errors?.['required'] && f['roomNumber'].touched" class="invalid-feedback">Room number is required</div>
+        <div *ngIf="f['roomNumber'].errors?.['min'] && f['roomNumber'].touched" class="invalid-feedback">Must be positive</div>
+      </div>
+      <div class="form-group">
+        <label>Hotel</label>
+        <select formControlName="hotelId">
+          <option [value]="null">— None —</option>
+          <option *ngFor="let h of hotels" [value]="h.id">{{ h.name }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Type *</label>
+        <select formControlName="type" [class.is-invalid]="f['type'].invalid && f['type'].touched">
+          <option value="">Select type</option>
+          <option *ngFor="let t of roomTypes" [value]="t">{{ t }}</option>
+        </select>
+        <div *ngIf="f['type'].errors?.['required'] && f['type'].touched" class="invalid-feedback">Type is required</div>
+      </div>
+      <div class="form-group">
+        <label>Comfort *</label>
+        <select formControlName="comfort" [class.is-invalid]="f['comfort'].invalid && f['comfort'].touched">
+          <option value="">Select comfort</option>
+          <option *ngFor="let c of comfortLevels" [value]="c">{{ c }}</option>
+        </select>
+        <div *ngIf="f['comfort'].errors?.['required'] && f['comfort'].touched" class="invalid-feedback">Comfort is required</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Price per Night (€) *</label>
+        <input type="number" step="0.01" formControlName="pricePerNight" [class.is-invalid]="f['pricePerNight'].invalid && f['pricePerNight'].touched">
+        <div *ngIf="f['pricePerNight'].errors?.['required'] && f['pricePerNight'].touched" class="invalid-feedback">Price is required</div>
+        <div *ngIf="f['pricePerNight'].errors?.['min'] && f['pricePerNight'].touched" class="invalid-feedback">Must be greater than 0</div>
+      </div>
+      <div class="form-group">
+        <label>Capacity (1–4) *</label>
+        <input type="number" formControlName="capacity" min="1" max="4" [class.is-invalid]="f['capacity'].invalid && f['capacity'].touched">
+        <div *ngIf="f['capacity'].errors?.['required'] && f['capacity'].touched" class="invalid-feedback">Capacity is required</div>
+        <div *ngIf="(f['capacity'].errors?.['min'] || f['capacity'].errors?.['max']) && f['capacity'].touched" class="invalid-feedback">Must be between 1 and 4</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Status *</label>
+        <select formControlName="status">
+          <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <textarea formControlName="description" rows="3"></textarea>
+      <div *ngIf="f['description'].errors?.['maxlength'] && f['description'].touched" class="invalid-feedback">Max 500 characters</div>
+    </div>
+
+    <div class="form-group" *ngIf="amenities.length > 0">
+      <label>Amenities</label>
+      <div class="amenity-grid">
+        <label *ngFor="let a of amenities" class="amenity-checkbox">
+          <input type="checkbox" [checked]="isAmenitySelected(a.id!)" (change)="toggleAmenity(a.id!)">
+          {{ a.name }}
+        </label>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;margin-top:1rem">
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{ loading ? 'Saving...' : (isEdit ? 'Update Room' : 'Create Room') }}
+      </button>
+      <a routerLink="/rooms" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>

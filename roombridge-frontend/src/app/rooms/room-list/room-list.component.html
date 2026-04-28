@@ -1,0 +1,58 @@
+<div class="page-header">
+  <h2>Rooms</h2>
+  <div style="display:flex;gap:.5rem;align-items:center">
+    <label>Sort by:
+      <select (change)="onSortChange($any($event.target).value)" class="sort-select">
+        <option value="roomNumber">Room #</option>
+        <option value="pricePerNight">Price (low)</option>
+        <option value="pricePerNight,desc">Price (high)</option>
+        <option value="capacity">Capacity</option>
+      </select>
+    </label>
+    <a routerLink="/rooms/new" class="btn btn-primary">+ Add Room</a>
+  </div>
+</div>
+
+<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+<div *ngIf="loading" class="loader">Loading...</div>
+
+<div *ngIf="!loading" class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>Room #</th>
+        <th>Type</th>
+        <th>Comfort</th>
+        <th>Price/Night</th>
+        <th>Capacity</th>
+        <th>Hotel</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let room of rooms">
+        <td><strong>{{ room.roomNumber }}</strong></td>
+        <td>{{ room.type }}</td>
+        <td>{{ room.comfort }}</td>
+        <td>€{{ room.pricePerNight }}</td>
+        <td>{{ room.capacity }} pax</td>
+        <td>{{ room.hotelName || '—' }}</td>
+        <td><span class="badge" [ngClass]="statusBadge(room.status)">{{ room.status }}</span></td>
+        <td>
+          <button class="btn btn-warning btn-sm" (click)="edit(room.id!)">Edit</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:.4rem" (click)="delete(room.id!)">Delete</button>
+        </td>
+      </tr>
+      <tr *ngIf="rooms.length === 0">
+        <td colspan="8" style="text-align:center;color:#888;padding:2rem">No rooms found.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="pagination" *ngIf="totalPages > 1">
+  <button class="btn btn-secondary btn-sm" [disabled]="currentPage === 0" (click)="goToPage(currentPage - 1)">← Prev</button>
+  <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+  <button class="btn btn-secondary btn-sm" [disabled]="currentPage === totalPages - 1" (click)="goToPage(currentPage + 1)">Next →</button>
+</div>
