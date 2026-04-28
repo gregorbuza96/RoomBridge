@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Room, AppUser } from '../../shared/models/models';
+import { Room } from '../../shared/models/models';
 import { BookingService } from '../../shared/services/booking.service';
 import { RoomService } from '../../shared/services/room.service';
-import { UserService } from '../../shared/services/user.service';
+import { AuthService } from '../../shared/services/auth.service';
 
 function futureDateValidator(control: any) {
   if (!control.value) return null;
@@ -21,7 +21,6 @@ export class BookingFormComponent implements OnInit {
   isEdit = false;
   bookingId?: number;
   rooms: Room[] = [];
-  users: AppUser[] = [];
   loading = false;
   error = '';
   today = new Date().toISOString().split('T')[0];
@@ -30,21 +29,22 @@ export class BookingFormComponent implements OnInit {
     private fb: FormBuilder,
     private bookingService: BookingService,
     private roomService: RoomService,
-    private userService: UserService,
+    private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    const currentUserId = this.authService.currentUser?.id ?? null;
+
     this.form = this.fb.group({
       roomId:       [null, Validators.required],
-      userId:       [null, Validators.required],
+      userId:       [currentUserId, Validators.required],
       checkInDate:  ['', [Validators.required, futureDateValidator]],
       checkOutDate: ['', [Validators.required, futureDateValidator]],
     }, { validators: this.dateRangeValidator });
 
     this.roomService.getAll(0, 100).subscribe({ next: p => this.rooms = p.content });
-    this.userService.getAll().subscribe({ next: u => this.users = u });
 
     this.bookingId = Number(this.route.snapshot.paramMap.get('id')) || undefined;
     if (this.bookingId) {
@@ -64,6 +64,20 @@ export class BookingFormComponent implements OnInit {
   }
 
   get f() { return this.form.controls; }
+
+  get selectedRoom(): Room | undefined {
+    const id = this.form.get('roomId')?.value;
+    return this.rooms.find(r => r.id == id);
+  }
+
+  get estimatedPrice(): number {
+    const room = this.selectedRoom;
+    const ci = this.form.get('checkInDate')?.value;
+    const co = this.form.get('checkOutDate')?.value;
+    if (!room || !ci || !co) return 0;
+    const nights = Math.max(0, (new Date(co).getTime() - new Date(ci).getTime()) / 86400000);
+    return Math.round(room.pricePerNight * nights * 100) / 100;
+  }
 
   submit(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
