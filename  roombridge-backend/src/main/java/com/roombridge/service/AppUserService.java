@@ -7,8 +7,10 @@ import com.roombridge.model.entity.AppUser;
 import com.roombridge.repository.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -19,6 +21,7 @@ public class AppUserService {
 
     private final AppUserRepository userRepository;
     private final AppUserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public List<AppUserDto> getAllUsers() {
         log.info("Fetching all users");
@@ -43,7 +46,7 @@ public class AppUserService {
             throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
         AppUser user = userMapper.toEntity(request);
-        user.setPassword(request.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         return userMapper.toDto(userRepository.save(user));
     }
 
@@ -59,6 +62,10 @@ public class AppUserService {
             throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
         userMapper.updateEntity(request, user);
+        // Update password only if a new one is provided
+        if (StringUtils.hasText(request.getPassword())) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
         return userMapper.toDto(userRepository.save(user));
     }
 
