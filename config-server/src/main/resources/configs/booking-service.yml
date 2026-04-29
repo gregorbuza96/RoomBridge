@@ -1,0 +1,42 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/roombridge_bookings
+    username: ${DB_USER:roombridge}
+    password: ${DB_PASSWORD:roombridge123}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+jwt:
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+
+services:
+  hotel-service: ${HOTEL_SERVICE_URL:http://hotel-service:8082}
+  user-service: ${USER_SERVICE_URL:http://user-service:8081}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      hotel-service:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+      user-service:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  retry:
+    instances:
+      hotel-service:
+        maxAttempts: 3
+        waitDuration: 500ms
+      user-service:
+        maxAttempts: 3
+        waitDuration: 500ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,circuitbreakers

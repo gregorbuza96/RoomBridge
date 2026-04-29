@@ -127,10 +127,9 @@ class BookingServiceTest {
     void createBooking_ShouldThrow_WhenInvalidDates() {
         bookingDto.setCheckInDate(LocalDate.now().plusDays(3));
         bookingDto.setCheckOutDate(LocalDate.now().plusDays(1));
-        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
-        when(bookingRepository.existsOverlappingBooking(any(), any(), any())).thenReturn(false);
 
         assertThrows(IllegalArgumentException.class, () -> bookingService.createBooking(bookingDto));
+        verify(roomRepository, never()).findById(any());
     }
 
     @Test

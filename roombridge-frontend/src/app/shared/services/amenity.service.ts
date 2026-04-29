@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Amenity } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class AmenityService {
-  private readonly API = 'http://localhost:8080/api/amenities';
+  private readonly API = environment.apiUrl + '/amenities';
 
   constructor(private http: HttpClient) {}
 

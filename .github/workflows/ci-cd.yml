@@ -1,0 +1,137 @@
+name: RoomBridge CI/CD — EKS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: eu-central-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
+  EKS_CLUSTER: roombridge-eks
+  K8S_NAMESPACE: roombridge
+
+jobs:
+  # ── Build & Test ────────────────────────────────────────
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run monolith tests
+        run: |
+          cd " roombridge-backend"
+          ./mvnw test -Dspring.profiles.active=test
+
+      - name: Build microservices JARs
+        run: mvn package -DskipTests
+
+  # ── Docker Build & Push to ECR ──────────────────────────
+  docker:
+    name: Docker Build & Push to ECR
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build all JARs
+        run: mvn package -DskipTests
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push images to ECR
+        run: |
+          TAG=${{ github.sha }}
+          for SERVICE in config-server api-gateway user-service hotel-service booking-service; do
+            # Create ECR repo if it doesn't exist
+            aws ecr describe-repositories --repository-names roombridge/$SERVICE 2>/dev/null || \
+              aws ecr create-repository --repository-name roombridge/$SERVICE
+
+            docker build \
+              -t $ECR_REGISTRY/roombridge/$SERVICE:$TAG \
+              -t $ECR_REGISTRY/roombridge/$SERVICE:latest \
+              ./$SERVICE
+
+            docker push $ECR_REGISTRY/roombridge/$SERVICE:$TAG
+            docker push $ECR_REGISTRY/roombridge/$SERVICE:latest
+          done
+
+  # ── Deploy to EKS ───────────────────────────────────────
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name ${{ env.EKS_CLUSTER }}
+
+      - name: Substitute image tags in manifests
+        run: |
+          TAG=${{ github.sha }}
+          find k8s -name "*.yaml" -exec \
+            sed -i "s|YOUR_ECR_ACCOUNT.dkr.ecr.YOUR_REGION.amazonaws.com|$ECR_REGISTRY|g; s|:latest|:$TAG|g" {} \;
+
+      - name: Deploy to EKS
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/secrets.yaml
+          kubectl apply -f k8s/redis/
+          kubectl apply -f k8s/config-server/
+          kubectl rollout status deployment/config-server -n $K8S_NAMESPACE --timeout=120s
+          kubectl apply -f k8s/user-service/
+          kubectl apply -f k8s/hotel-service/
+          kubectl apply -f k8s/booking-service/
+          kubectl apply -f k8s/api-gateway/
+          kubectl apply -f k8s/monitoring/
+
+      - name: Verify rollout
+        run: |
+          kubectl rollout status deployment/user-service    -n $K8S_NAMESPACE --timeout=180s
+          kubectl rollout status deployment/hotel-service   -n $K8S_NAMESPACE --timeout=180s
+          kubectl rollout status deployment/booking-service -n $K8S_NAMESPACE --timeout=180s
+          kubectl rollout status deployment/api-gateway     -n $K8S_NAMESPACE --timeout=180s
+
+      - name: Get LoadBalancer URL
+        run: |
+          echo "API Gateway URL:"
+          kubectl get svc api-gateway -n $K8S_NAMESPACE \
+            -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'

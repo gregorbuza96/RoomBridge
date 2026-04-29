@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-service
+  namespace: roombridge
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: booking-service
+  template:
+    metadata:
+      labels:
+        app: booking-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8083"
+    spec:
+      containers:
+        - name: booking-service
+          image: YOUR_ECR_ACCOUNT.dkr.ecr.YOUR_REGION.amazonaws.com/booking-service:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: CONFIG_SERVER_URL
+              value: http://config-server:8888
+            - name: DB_HOST
+              value: db-bookings
+            - name: DB_USER
+              value: roombridge
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: roombridge-secrets
+                  key: db-password
+            - name: HOTEL_SERVICE_URL
+              value: http://hotel-service:8082
+            - name: USER_SERVICE_URL
+              value: http://user-service:8081
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: roombridge-secrets
+                  key: jwt-secret
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-service
+  namespace: roombridge
+spec:
+  selector:
+    app: booking-service
+  ports:
+    - port: 8083
+      targetPort: 8083
